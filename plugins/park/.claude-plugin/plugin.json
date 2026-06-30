@@ -1,11 +1,17 @@
 {
   "name": "park",
   "description": "Park ideas, bugs, and specs that surface mid-feature, then resume them later as separate work. Companion to the superpowers plugin.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": {
     "name": "Artem Sachuk",
     "email": "artemsachuk@gmail.com"
   },
   "license": "MIT",
-  "keywords": ["superpowers", "workflow", "parking", "specs", "productivity"]
+  "keywords": [
+    "superpowers",
+    "workflow",
+    "parking",
+    "specs",
+    "productivity"
+  ]
 }

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-06-30
+
 ### Added
 - Scope-guard (`park` skill Mode E): detects when a change is drifting from the
   branch's goal and offers to park it — capturing the diff and reverting the
