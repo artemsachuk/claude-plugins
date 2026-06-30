@@ -1,9 +1,18 @@
-# claude-plugins
+<div align="center">
 
-[![CI](https://github.com/artemsachuk/claude-plugins/actions/workflows/ci.yml/badge.svg)](https://github.com/artemsachuk/claude-plugins/actions/workflows/ci.yml)
+<h1>claude-plugins</h1>
 
-A small open marketplace of [Claude Code](https://docs.claude.com/en/docs/claude-code/overview)
-plugins by Artem Sachuk.
+<p>A curated collection of Claude Code plugins by Artem Sachuk.<br>
+Browse, install, and contribute composable tools for your Claude workflow.</p>
+
+<p>
+  <a href="https://github.com/artemsachuk/claude-plugins/releases/latest"><img src="https://img.shields.io/github/v/release/artemsachuk/claude-plugins?label=release" alt="Release" /></a> &nbsp;
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-555.svg" alt="License" /></a> &nbsp;
+  <img src="https://img.shields.io/badge/Claude%20Code-plugin-f5b800.svg" alt="Claude Code plugin" /> &nbsp;
+  <a href="https://github.com/artemsachuk/claude-plugins/actions/workflows/ci.yml"><img src="https://github.com/artemsachuk/claude-plugins/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+</p>
+
+</div>
 
 ## Add the marketplace
 
