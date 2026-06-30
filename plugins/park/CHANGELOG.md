@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Scope-guard (`park` skill Mode E): detects when a change is drifting from the
+  branch's goal and offers to park it — capturing the diff and reverting the
+  files, with honest handling of irreversible side effects (migrations,
+  installed dependencies).
+- Nudge hook now also fires on a "new-area" edit (a file in a directory the
+  branch has not touched), not only on spec/plan writes. Per-branch
+  `accepted_areas` in `.git/park-scope/` suppress repeat nudges once a tangent
+  is accepted as in-scope.
+
 ## [0.1.0] - 2026-06-30
 
 ### Added

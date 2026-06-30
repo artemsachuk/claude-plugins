@@ -50,12 +50,59 @@ if [ -n "$repo_root" ]; then
   [ -n "$out" ] && dirty=1
 fi
 
-should_nudge "$file_path" "$branch" "$ahead" "$dirty" || exit 0
+# --- Signal A: new-area detection -----------------------------------------
+# Determine whether the edited file lands in an area the branch has not yet
+# touched, and whether that area was already accepted as in-scope.
+is_new_area=0
+is_accepted=0
+if [ -n "$repo_root" ]; then
+  # Repo-relative path of the edited file. Derived via git's show-prefix so it
+  # is correct even when repo_root and file_path differ only by a symlinked
+  # prefix (e.g. macOS /var vs /private/var).
+  prefix="$(git -C "$file_dir" rev-parse --show-prefix 2>/dev/null)"
+  rel="${prefix}${file_path##*/}"
+  edited_area="$(path_area "$rel")"
+
+  # Areas the branch has already touched, EXCLUDING the triggering file
+  # itself (it is the candidate new-area edit). Sources: commits ahead of
+  # base, plus tracked working-tree changes vs HEAD.
+  touched_areas="$(
+    {
+      if [ -n "$base" ] && [ "$branch" != "$base" ]; then
+        git -C "$repo_root" diff --name-only "${base}..HEAD" 2>/dev/null
+      fi
+      git -C "$repo_root" diff --name-only HEAD 2>/dev/null
+    } | grep -vxF "$rel" 2>/dev/null | while IFS= read -r f; do
+          [ -n "$f" ] || continue
+          printf '%s\n' "$(path_area "$f")"
+        done | sort -u
+  )"
+
+  if [ -n "$edited_area" ] \
+     && ! printf '%s\n' "$touched_areas" | grep -qxF "$edited_area"; then
+    is_new_area=1
+  fi
+
+  # Accepted-area suppression: grep accepted_areas from the branch cache.
+  git_dir="$(git -C "$repo_root" rev-parse --absolute-git-dir 2>/dev/null)"
+  if [ -n "$git_dir" ]; then
+    branch_slug="${branch//\//-}"
+    cache="${git_dir}/park-scope/${branch_slug}.md"
+    if [ -f "$cache" ]; then
+      esc="$(printf '%s' "$edited_area" | sed 's/[][\\.^$*/]/\\&/g')"
+      if grep -qE "^[[:space:]]*-[[:space:]]+${esc}[[:space:]]*$" "$cache" 2>/dev/null; then
+        is_accepted=1
+      fi
+    fi
+  fi
+fi
+
+should_nudge "$file_path" "$branch" "$ahead" "$dirty" "$is_new_area" "$is_accepted" || exit 0
 
 # Emit the reminder as PostToolUse additionalContext.
-msg="You're mid-feature on branch '"
+msg="You may be drifting from the goal of branch '"
 msg="${msg}${branch}"
-msg="${msg}'. If this spec/plan is unrelated scope, consider parking it with the park skill instead of building it on this branch."
+msg="${msg}'. Use the park skill's scope-guard (Mode E) to check this change: if it's unrelated scope, park it (the skill captures the diff and reverts the files); if it's genuinely in-scope, say so to stop future nudges on that area."
 
 # Minimal JSON string escaping for the message.
 escape_json() {

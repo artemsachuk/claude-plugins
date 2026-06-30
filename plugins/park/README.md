@@ -63,3 +63,43 @@ When you're mid-feature on a non-`main` branch (with real work already in
 progress) and a spec or plan gets written, `park` quietly reminds you to
 consider parking it if it's unrelated scope. It only ever *suggests* — it never
 moves or deletes anything, and it stays silent on a fresh, empty branch.
+
+### The scope-guard
+
+The nudge above is the simple case. `park` also watches for **derailing** — when
+the work itself drifts from your branch's goal — and offers to park it before
+the tangent grows. Small branches are easy to review and merge; sprawling ones
+aren't, so the guard exists to keep you on track.
+
+**What trips it.** A quiet hook watches for two structural signals on a
+non-`main` branch that already has real work in progress:
+
+- you edit a **new area** of the codebase the branch hasn't touched yet (the
+  classic "while I'm here…" tangent), or
+- a **spec or plan** gets written mid-branch.
+
+The hook only *notices* — it never decides. When a signal trips, Claude figures
+out your branch's goal (from a spec/plan, the conversation, or by asking you
+once) and judges whether the change is genuinely off-track. If it looks
+in-scope, you hear nothing.
+
+**What happens when it's real drift.** Claude pauses, names the drift, and gives
+you the call — three options, nothing automatic:
+
+- **Park it.** Claude saves the drifting work as a parked item — the actual
+  code changes (as a patch) *plus* a written description — then cleanly reverts
+  those file changes so your branch stays focused. Resuming the parked item can
+  re-apply the patch.
+- **This is in-scope.** Claude widens the branch's remembered goal and stops
+  flagging that area.
+- **Expand scope deliberately.** Same as above, your choice on the record.
+
+**Side effects are handled honestly.** Reverting files can't undo a database
+migration you already ran, a dependency you installed, or other real-world
+changes. When the drift involves those, `park` won't pretend it cleaned up — it
+still saves the code, lists exactly what git can't undo, and asks how you want
+to handle the rollback. It never runs a destructive rollback (a `down`
+migration, a `DROP`, deleting a resource) on its own.
+
+Everything the guard does — every revert, every choice — waits for your explicit
+go-ahead. It guards your scope; it never takes the wheel.

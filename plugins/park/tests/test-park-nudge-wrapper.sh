@@ -143,6 +143,134 @@ out4="$(hook_output "$spec4")"
 assert_empty "Case 4: on main → no nudge" "$out4"
 
 # ---------------------------------------------------------------------------
+# Case 6: Footprint exists (1 commit ahead in src/core); a file is created in
+#         a NEW area (src/extra) → nudge mentioning scope-guard.
+# ---------------------------------------------------------------------------
+d6="$(mktemp -d)"
+tmpdir_list+=("$d6")
+make_repo "$d6"
+git -C "$d6" checkout -q -b feature/area
+mkdir -p "$d6/src/core"
+printf 'core\n' > "$d6/src/core/a.js"
+git -C "$d6" add src/core/a.js
+git -C "$d6" commit -q -m "core work"
+mkdir -p "$d6/src/extra"
+printf 'extra\n' > "$d6/src/extra/b.js"
+out6="$(hook_output "$d6/src/extra/b.js")"
+assert_contains "Case 6: new-area edit with footprint → nudge" "additionalContext" "$out6"
+assert_contains "Case 6: nudge points at scope-guard" "scope-guard" "$out6"
+
+# ---------------------------------------------------------------------------
+# Case 7: Footprint in src/auth; another file edited in the SAME area → silent.
+# ---------------------------------------------------------------------------
+d7="$(mktemp -d)"
+tmpdir_list+=("$d7")
+make_repo "$d7"
+git -C "$d7" checkout -q -b feature/samearea
+mkdir -p "$d7/src/auth"
+printf 'a\n' > "$d7/src/auth/a.js"
+git -C "$d7" add src/auth/a.js
+git -C "$d7" commit -q -m "auth work"
+printf 'b\n' > "$d7/src/auth/b.js"
+out7="$(hook_output "$d7/src/auth/b.js")"
+assert_empty "Case 7: same-area edit → no nudge" "$out7"
+
+# ---------------------------------------------------------------------------
+# Case 8: New-area edit, but the area is listed in the branch scope-cache's
+#         accepted_areas → silent (suppression).
+# ---------------------------------------------------------------------------
+d8="$(mktemp -d)"
+tmpdir_list+=("$d8")
+make_repo "$d8"
+git -C "$d8" checkout -q -b feature/accepted
+mkdir -p "$d8/src/core"
+printf 'core\n' > "$d8/src/core/a.js"
+git -C "$d8" add src/core/a.js
+git -C "$d8" commit -q -m "core work"
+mkdir -p "$d8/.git/park-scope"
+cat > "$d8/.git/park-scope/feature-accepted.md" <<'CACHE'
+---
+branch: feature/accepted
+intent: test intent
+established: 2026-06-30
+accepted_areas:
+  - src/extra
+---
+CACHE
+mkdir -p "$d8/src/extra"
+printf 'extra\n' > "$d8/src/extra/b.js"
+out8="$(hook_output "$d8/src/extra/b.js")"
+assert_empty "Case 8: new-area edit but area accepted → no nudge" "$out8"
+
+# ---------------------------------------------------------------------------
+# Case 9: A file MODIFIED (not newly created) in an area the branch hasn't
+#         touched. Exercises the triggering-file exclusion on the tracked path.
+# ---------------------------------------------------------------------------
+d9="$(mktemp -d)"
+tmpdir_list+=("$d9")
+make_repo "$d9"
+# src/legacy exists on main (committed before branching).
+mkdir -p "$d9/src/legacy"
+printf 'old\n' > "$d9/src/legacy/old.js"
+git -C "$d9" add src/legacy/old.js
+git -C "$d9" commit -q -m "legacy on main"
+git -C "$d9" checkout -q -b feature/mod
+# Footprint in a different area.
+mkdir -p "$d9/src/core"
+printf 'core\n' > "$d9/src/core/a.js"
+git -C "$d9" add src/core/a.js
+git -C "$d9" commit -q -m "core work"
+# Now modify the tracked legacy file — a NEW area for this branch.
+printf 'changed\n' >> "$d9/src/legacy/old.js"
+out9="$(hook_output "$d9/src/legacy/old.js")"
+assert_contains "Case 9: modify tracked file in new area → nudge" "additionalContext" "$out9"
+
+# ---------------------------------------------------------------------------
+# Case 10: accepted_areas holds a PREFIX of the edited area ("src/ex" vs the
+#          edited "src/extra"). The anchored match must NOT suppress → nudge.
+# ---------------------------------------------------------------------------
+d10="$(mktemp -d)"
+tmpdir_list+=("$d10")
+make_repo "$d10"
+git -C "$d10" checkout -q -b feature/prefix
+mkdir -p "$d10/src/core"
+printf 'core\n' > "$d10/src/core/a.js"
+git -C "$d10" add src/core/a.js
+git -C "$d10" commit -q -m "core work"
+mkdir -p "$d10/.git/park-scope"
+cat > "$d10/.git/park-scope/feature-prefix.md" <<'CACHE'
+---
+branch: feature/prefix
+intent: test intent
+established: 2026-06-30
+accepted_areas:
+  - src/ex
+---
+CACHE
+mkdir -p "$d10/src/extra"
+printf 'extra\n' > "$d10/src/extra/b.js"
+out10="$(hook_output "$d10/src/extra/b.js")"
+assert_contains "Case 10: accepted prefix 'src/ex' must NOT suppress 'src/extra'" "additionalContext" "$out10"
+
+# ---------------------------------------------------------------------------
+# Case 11: Writing a parked item (docs/superpowers/parked_items/...) is a new
+#          area for the branch, but park's own bookkeeping must NOT self-nudge.
+# ---------------------------------------------------------------------------
+d11="$(mktemp -d)"
+tmpdir_list+=("$d11")
+make_repo "$d11"
+git -C "$d11" checkout -q -b feature/parking
+mkdir -p "$d11/src/core"
+printf 'core\n' > "$d11/src/core/a.js"
+git -C "$d11" add src/core/a.js
+git -C "$d11" commit -q -m "core work"
+parked="$d11/docs/superpowers/parked_items/2026-06-30-feature-x.md"
+mkdir -p "$(dirname "$parked")"
+printf 'parked note\n' > "$parked"
+out11="$(hook_output "$parked")"
+assert_empty "Case 11: writing a parked item → no self-nudge" "$out11"
+
+# ---------------------------------------------------------------------------
 echo ""
 echo "passed=$pass failed=$fail"
 [ "$fail" -eq 0 ]
