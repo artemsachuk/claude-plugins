@@ -1,0 +1,15 @@
+{
+  "name": "as-claude-plugins",
+  "description": "Open marketplace of Claude Code plugins by Artem Sachuk.",
+  "owner": {
+    "name": "Artem Sachuk",
+    "email": "artemsachuk@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "park",
+      "source": "./plugins/park",
+      "description": "Park ideas, bugs, and specs that surface mid-feature, then resume them later as separate work. Companion to the superpowers plugin."
+    }
+  ]
+}
