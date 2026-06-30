@@ -15,12 +15,12 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y shellcheck
 
       - name: Lint shell scripts
-        run: shellcheck plugins/*/hooks/*.sh plugins/*/tests/*.sh
+        run: shellcheck plugins/*/hooks/*.sh plugins/*/tests/*.sh scripts/*.sh scripts/tests/*.sh
 
-      - name: Run plugin tests
+      - name: Run tests
         run: |
           status=0
-          for t in plugins/*/tests/*.sh; do
+          for t in plugins/*/tests/*.sh scripts/tests/*.sh; do
             echo "== $t =="
             bash "$t" || status=1
           done

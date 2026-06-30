@@ -2,3 +2,6 @@
 *.swp
 *.swo
 *~
+
+# Local planning/workflow artifacts (superpowers specs, plans, parked items)
+docs/superpowers/

@@ -58,3 +58,8 @@ Point Claude Code at your working copy and install from it:
 /plugin install <name>@as-claude-plugins
 /reload-plugins
 ```
+
+## Releasing
+
+Plugins version and release independently. See [RELEASING.md](RELEASING.md) for
+the changelog convention and the `scripts/release.sh` workflow.
